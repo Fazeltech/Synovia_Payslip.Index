@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Synovia Digital — Payslip Editor</title>
+<style>
+  :root{
+    --ink:#1a1a1a;
+    --line:#000;
+    --muted:#666;
+    --panel:#f4f5f7;
+    --accent:#1d4ed8;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:-apple-system,Segoe UI,Helvetica,Arial,sans-serif;
+    background:#e9eaee;
+    color:var(--ink);
+  }
+  .app{
+    display:grid;
+    grid-template-columns:380px 1fr;
+    min-height:100vh;
+  }
+  /* ---------------- FORM PANEL ---------------- */
+  .form-panel{
+    background:var(--panel);
+    padding:20px;
+    overflow-y:auto;
+    max-height:100vh;
+    border-right:1px solid #d0d2d8;
+  }
+  .form-panel h1{
+    font-size:16px;
+    margin:0 0 4px;
+  }
+  .form-panel .sub{
+    font-size:12px;
+    color:var(--muted);
+    margin:0 0 16px;
+  }
+  fieldset{
+    border:1px solid #d0d2d8;
+    border-radius:8px;
+    margin:0 0 14px;
+    padding:10px 12px 14px;
+    background:#fff;
+  }
+  legend{
+    font-size:11px;
+    font-weight:700;
+    text-transform:uppercase;
+    letter-spacing:.04em;
+    color:var(--accent);
+    padding:0 4px;
+  }
+  .row{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:8px;
+    margin-bottom:8px;
+  }
+  label{
+    display:block;
+    font-size:11px;
+    color:var(--muted);
+    margin-bottom:2px;
+  }
+  input, select{
+    width:100%;
+    padding:6px 7px;
+    font-size:12.5px;
+    border:1px solid #c7c9d1;
+    border-radius:5px;
+    font-family:inherit;
+  }
+  input:focus, select:focus{
+    outline:2px solid var(--accent);
+    outline-offset:0;
+  }
+  .ded-row{
+    display:grid;
+    grid-template-columns:1fr 90px 28px;
+    gap:6px;
+    margin-bottom:6px;
+    align-items:end;
+  }
+  .btn{
+    cursor:pointer;
+    border:none;
+    border-radius:6px;
+    font-size:12.5px;
+    padding:7px 10px;
+    font-weight:600;
+  }
+  .btn-add{
+    background:#e5edff;
+    color:var(--accent);
+    width:100%;
+    margin-top:2px;
+  }
+  .btn-remove{
+    background:#fde2e1;
+    color:#b91c1c;
+    padding:6px;
+  }
+  .actions{
+    position:sticky;
+    bottom:0;
+    background:var(--panel);
+    padding-top:10px;
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+  }
+  .btn-primary{
+    background:var(--accent);
+    color:#fff;
+    flex:1;
+  }
+  .btn-secondary{
+    background:#fff;
+    color:var(--ink);
+    border:1px solid #c7c9d1;
+    flex:1;
+  }
+  input[type=file]{display:none;}
+
+  /* ---------------- PREVIEW PANEL ---------------- */
+  .preview-panel{
+    padding:28px;
+    display:flex;
+    justify-content:center;
+    align-items:flex-start;
+  }
+  .sheet{
+    width:210mm;
+    min-height:297mm;
+    background:#fff;
+    box-shadow:0 4px 18px rgba(0,0,0,.18);
+    padding:16mm 18mm;
+    font-size:12px;
+    color:var(--ink);
+  }
+  .sheet .brand-row{
+    display:flex;
+    align-items:flex-start;
+    gap:14px;
+    border-bottom:1.5px solid var(--line);
+    padding-bottom:8px;
+    margin-bottom:14px;
+  }
+  .sheet .brand-row img{
+    height:60px;
+  }
+  .sheet .addr{
+    font-size:11px;
+    line-height:1.5;
+    margin-top:4px;
+  }
+  .sheet h2.title{
+    text-align:center;
+    font-size:16px;
+    margin:0 0 2px;
+  }
+  .sheet p.subtitle{
+    text-align:center;
+    font-size:13px;
+    margin:0 0 14px;
+  }
+  table.grid{
+    width:100%;
+    border-collapse:collapse;
+    margin-bottom:12px;
+  }
+  table.grid td, table.grid th{
+    border:1px solid var(--line);
+    padding:5px 7px;
+    font-size:11.5px;
+    vertical-align:middle;
+  }
+  table.grid td.label, table.grid th.label{
+    font-weight:700;
+    width:24%;
+  }
+  .section-header{
+    text-align:center;
+    font-weight:700;
+    border:1px solid var(--line);
+    padding:5px;
+    font-size:11.5px;
+  }
+  .net-box{
+    display:grid;
+    grid-template-columns:65% 35%;
+    border:1px solid var(--line);
+    border-top:none;
+  }
+  .net-box > div{
+    padding:6px 8px;
+    font-size:11.5px;
+  }
+  .net-box > div:first-child{
+    border-right:1px solid var(--line);
+  }
+  .footer-note{
+    text-align:center;
+    font-style:italic;
+    font-size:10.5px;
+    color:#333;
+    margin-top:18px;
+  }
+  .amt{text-align:right;}
+
+  @media print{
+    body{background:#fff;}
+    .form-panel, .app{display:block;}
+    .form-panel{display:none;}
+    .preview-panel{padding:0;display:block;}
+    .sheet{box-shadow:none;margin:0;width:auto;min-height:0;}
+    @page{margin:12mm;}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ============ FORM PANEL ============ -->
+  <div class="form-panel" id="formPanel">
+    <h1>Payslip Editor</h1>
+    <p class="sub">Edit any field — the payslip on the right updates live. Use Print to save as PDF.</p>
+
+    <fieldset>
+      <legend>Pay Period</legend>
+      <div class="row">
+        <div><label>Month</label><input id="pay_month" value="July"></div>
+        <div><label>Year</label><input id="pay_year" value="2026"></div>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Employee Details</legend>
+      <div class="row">
+        <div><label>Employee Code</label><input id="employee_code" value="036"></div>
+        <div><label>Gender</label>
+          <select id="gender"><option>Male</option><option>Female</option><option>Other</option></select>
+        </div>
+      </div>
+      <div class="row">
+        <div><label>Employee Name</label><input id="employee_name" value="Jane Employee"></div>
+        <div><label>Joining Date</label><input id="joining_date" value="01-01-2025"></div>
+      </div>
+      <div class="row">
+        <div><label>Department</label><input id="department" value="B2"></div>
+        <div><label>Currency</label><input id="currency" value="INR"></div>
+      </div>
+      <div class="row">
+        <div><label>Tot. Working Days</label><input id="tot_working_days" type="number" value="21"></div>
+        <div><label>NTN No</label><input id="ntn_no" value=""></div>
+      </div>
+      <div class="row">
+        <div><label>Work Location</label><input id="work_location" value="Remote"></div>
+        <div><label>ID No</label><input id="id_no" value="AAAAA0000A"></div>
+      </div>
+      <div class="row">
+        <div><label>Designation</label><input id="designation" value="SAP Consultant"></div>
+        <div><label>Employee Type</label>
+          <select id="employee_type"><option>Full-Time</option><option>Part-Time</option><option>Contract</option></select>
+        </div>
+      </div>
+      <div class="row">
+        <div><label>Nationality</label><input id="nationality" value="Indian"></div>
+        <div></div>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Payment &amp; Allowance</legend>
+      <div class="row">
+        <div><label>Basic Salary</label><input id="basic_salary" type="number" value="250000"></div>
+        <div><label>Expenses (Overtime)</label><input id="overtime" type="number" value="0"></div>
+      </div>
+      <div class="row">
+        <div><label>Medical</label><input id="medical" type="number" value="0"></div>
+        <div></div>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Deductions</legend>
+      <div id="deductionsList"></div>
+      <button class="btn btn-add" onclick="addDeduction()">+ Add deduction</button>
+    </fieldset>
+
+    <fieldset>
+      <legend>Loan &amp; Advances</legend>
+      <div class="row">
+        <div><label>Total Loan</label><input id="total_loan" type="number" value="0"></div>
+        <div><label>Paid Loan</label><input id="paid_loan" type="number" value="0"></div>
+      </div>
+      <div class="row">
+        <div><label>Balance</label><input id="loan_balance" type="number" value="0"></div>
+        <div></div>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Provident Fund</legend>
+      <div class="row">
+        <div><label>Starting Balance</label><input id="pf_starting_balance" type="number" value="0"></div>
+        <div><label>Own &amp; Co. Cont. (gross)</label><input id="pf_own_co_contribution" type="number" value="0"></div>
+      </div>
+      <div class="row">
+        <div><label>PF Permanent Loan</label><input id="pf_permanent_loan" type="number" value="0"></div>
+        <div><label>Less: Refundable Loan</label><input id="pf_refundable_loan" type="number" value="0"></div>
+      </div>
+      <div class="row">
+        <div><label>Total Provident Fund</label><input id="pf_total" type="number" value="0"></div>
+        <div></div>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Bank Account</legend>
+      <div class="row">
+        <div><label>Account No</label><input id="account_no" value="000000000000"></div>
+        <div><label>IFSC Code</label><input id="ifsc_code" value="XXXX0000000"></div>
+      </div>
+      <div class="row">
+        <div style="grid-column:1/-1;"><label>Bank Name</label><input id="bank_name" value="BANK NAME"></div>
+      </div>
+    </fieldset>
+
+    <div class="actions">
+      <button class="btn btn-primary" onclick="window.print()">Print / Save as PDF</button>
+    </div>
+    <div class="actions">
+      <button class="btn btn-secondary" onclick="exportJSON()">Export data (.json)</button>
+      <button class="btn btn-secondary" onclick="document.getElementById('importFile').click()">Import data</button>
+      <input type="file" id="importFile" accept="application/json" onchange="importJSON(event)">
+    </div>
+  </div>
+
+  <!-- ============ PREVIEW PANEL ============ -->
+  <div class="preview-panel">
+    <div class="sheet" id="sheet">
+      <div class="brand-row">
+        <img id="logoImg" src="" alt="logo">
+        <div class="addr">
+          Block 3, Miesian Plaza 50-58<br>
+          Baggot Street Lower Dublin 2, D02 Y754
+        </div>
+      </div>
+      <h2 class="title">CONFIDENTIAL</h2>
+      <p class="subtitle" id="p_subtitle">Pay Slip for the month of July 2026</p>
+
+      <table class="grid">
+        <tr>
+          <td class="label">Employee Code:</td><td id="p_employee_code"></td>
+          <td class="label">Gender:</td><td id="p_gender"></td>
+        </tr>
+        <tr>
+          <td class="label">Employee Name:</td><td id="p_employee_name"></td>
+          <td class="label">Joining Date:</td><td id="p_joining_date"></td>
+        </tr>
+        <tr>
+          <td class="label">Department:</td><td id="p_department"></td>
+          <td class="label">Currency:</td><td id="p_currency"></td>
+        </tr>
+        <tr>
+          <td class="label">Tot. Working Days:</td><td id="p_tot_working_days"></td>
+          <td class="label">NTN No:</td><td id="p_ntn_no"></td>
+        </tr>
+        <tr>
+          <td class="label">Work Location:</td><td id="p_work_location"></td>
+          <td class="label">ID No:</td><td id="p_id_no"></td>
+        </tr>
+        <tr>
+          <td class="label">Designation:</td><td id="p_designation"></td>
+          <td class="label">Employee Type:</td><td id="p_employee_type"></td>
+        </tr>
+        <tr>
+          <td class="label">Nationality:</td><td id="p_nationality"></td>
+          <td></td><td></td>
+        </tr>
+      </table>
+
+      <table class="grid">
+        <tr>
+          <th>PAYMENT &amp; ALLOWANCE</th><th>Amount</th><th>DEDUCTIONS</th><th>Amount</th>
+        </tr>
+        <tr><td>Basic Salary</td><td class="amt" id="p_basic_salary"></td><td id="ded_label_0"></td><td class="amt" id="ded_amt_0"></td></tr>
+        <tr><td>Expenses (Overtime)</td><td class="amt" id="p_overtime"></td><td id="ded_label_1"></td><td class="amt" id="ded_amt_1"></td></tr>
+        <tr><td>Medical</td><td class="amt" id="p_medical"></td><td id="ded_label_2"></td><td class="amt" id="ded_amt_2"></td></tr>
+        <tr id="extraDedRows"></tr>
+        <tr><td><b>GROSS PAY</b></td><td class="amt"><b id="p_gross_pay"></b></td><td></td><td></td></tr>
+      </table>
+
+      <div class="net-box">
+        <div><b>NET PAY In Words:</b><br><span id="p_net_words"></span></div>
+        <div><b>NET PAY In Figures:</b><br><span id="p_net_figures" style="font-size:14px;font-weight:700;"></span></div>
+      </div>
+
+      <div style="height:12px;"></div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;">
+        <div class="section-header" style="border-right:none;">LOAN AND ADVANCES:</div>
+        <div class="section-header">PROVIDENT FUND DETAILS:</div>
+      </div>
+      <table class="grid" style="margin-top:0;">
+        <tr>
+          <td style="width:16%;">Total Loan:</td><td class="amt" style="width:9%;" id="p_total_loan"></td>
+          <td style="width:33%;">Starting Balance</td><td class="amt" id="p_pf_starting_balance"></td>
+        </tr>
+        <tr>
+          <td>Paid Loan:</td><td class="amt" id="p_paid_loan"></td>
+          <td>Own &amp; Co. Cont. (gross)</td><td class="amt" id="p_pf_own_co_contribution"></td>
+        </tr>
+        <tr>
+          <td>Balance:</td><td class="amt" id="p_loan_balance"></td>
+          <td>PF Permanent Loan</td><td class="amt" id="p_pf_permanent_loan"></td>
+        </tr>
+        <tr>
+          <td></td><td></td>
+          <td>Less: Refundable Loan</td><td class="amt" id="p_pf_refundable_loan"></td>
+        </tr>
+        <tr>
+          <td></td><td></td>
+          <td>Total Provident Fund</td><td class="amt" id="p_pf_total"></td>
+        </tr>
+      </table>
+
+      <div class="section-header">DEPOSITED TO ACCOUNT:</div>
+      <table class="grid" style="margin-top:0;">
+        <tr><td style="line-height:1.7;">
+          Account No: <span id="p_account_no"></span><br>
+          IFSC Code: <span id="p_ifsc_code"></span><br>
+          Bank Name: <span id="p_bank_name"></span>
+        </td></tr>
+      </table>
+
+      <p class="footer-note">This is a computer-generated statement and does not require a stamp or signature.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+const LOGO_B64 = "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yhAi4DO//43L/+HOQWYNLV68cfHijZ81N362rbXDToJjRYpp+vQJt1w97ZarDzs863fPv/+751es37Y/Gc+EiwLnTZ1w66wpX5s15TgvdP89M++/Z2bfTx56YslDTyz1srKzvQccKCoveuCbMx6458ov/pZcF9JpME0aNYp///swYQKceioAyIULvUWLjLfewlgMDCNXk4ffdx+/774jLTz8MDz8MCQSkEz2flRdjVOmwM034333QZ/vez/5ifdf/2W5rk4mMytX2t/7XlVu2/df/xUefJB++Ut45BFobs7Zwbo6uuMOaGjA40h5EpNPqg4FfUG/cdpZVcOG9xOG9vPHl/7id2/F7ew/3jXjH+861BDPvvjJsy+t2fD5zlgm/U/3XP2//+Wx6lFjLAvRz7ktlOExI7Rh/f69ezrWR9svm3jyZZPGL1y6fuFb69/7cJvjOcIQYHBhso2b93y+u23z1l2XnH/6/T95MZ2xg0H/XXMb7u6TBfPrZ9759TPL9jZ1xTrT//qD6/5j/psjq4q/fftl37n9sp/8z+s//c0bPmEwSeCB6TcNTv/v16/+y0PP//N3r/3n717X/30jwgcfQDic00xce63YsgX++EcpBMtmUUp68EH4t38Dy1LBILvvPnb//fLhh9XDD5tEIMShhQjLQs+jVavg/PPhRz+CH/0IQiEcPhzuuUc8+ih3XRCCdXUFX345CEAAurjYe+klUVUFP/85l5L8fkylgHNt2/j007hmDbS0QOUxyvyzypERv990pbzilOFjK/rRjBhqgZ6inz+x7OH5Sw9+3hmLbWvck3EchgwRgYc6Y2lPAmeMITAAYbCuWLqlPf3G82t3bm4FgL3N7StWb844tudJxohxRoC24/bEk39YsnHz59FQwEpm3O7OhJ05dDbdWx9s292SSqQ9y7ImjB9TUV6qPOkp0poAgAEKQg7cYBwIhIHhcMBgPOgPLl2/9fFFK45255RKkXvo+HAaP55mzWKhEBJ5LS166lTIRZdqjUTwwgti1SozkyFEMk2pde82jGmSaaquLsoceINoTYgEIB0nV/UDGEN+IGYdUQtBjHEAQiTL0kKgaYLW1NKid+6E11+HePwYmr25bGc8kUqlvX//3epb/+nZsQ3/dM+DT7+2fMPBbwR8ZllRyGAsErQs45Ab4ymdcSUQLwv7AqYAci0DKsrD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";
+document.getElementById('logoImg').src = "data:image/png;base64," + LOGO_B64;
+
+let deductions = []; // {label, amount}
+
+function addDeduction(label, amount){
+  deductions.push({label: label || "", amount: amount || 0});
+  renderDeductionRows();
+  update();
+}
+function removeDeduction(i){
+  deductions.splice(i,1);
+  renderDeductionRows();
+  update();
+}
+function renderDeductionRows(){
+  const wrap = document.getElementById('deductionsList');
+  wrap.innerHTML = "";
+  deductions.forEach((d, i) => {
+    const row = document.createElement('div');
+    row.className = 'ded-row';
+    row.innerHTML = `
+      <div><label>Label</label><input value="${escapeAttr(d.label)}" oninput="deductions[${i}].label=this.value; update();"></div>
+      <div><label>Amount</label><input type="number" value="${d.amount}" oninput="deductions[${i}].amount=Number(this.value)||0; update();"></div>
+      <button class="btn btn-remove" onclick="removeDeduction(${i})">✕</button>
+    `;
+    wrap.appendChild(row);
+  });
+}
+function escapeAttr(s){ return String(s).replace(/"/g, '&quot;'); }
+
+// ---- Indian number formatting & words ----
+function formatINR(n){
+  n = Math.round(Number(n)||0);
+  const neg = n < 0; n = Math.abs(n);
+  let s = String(n);
+  if(s.length <= 3) return (neg?'-':'')+s;
+  let last3 = s.slice(-3);
+  let rest = s.slice(0,-3);
+  let parts = [];
+  while(rest.length > 2){ parts.unshift(rest.slice(-2)); rest = rest.slice(0,-2); }
+  if(rest) parts.unshift(rest);
+  return (neg?'-':'') + parts.join(',') + ',' + last3;
+}
+
+const ONES = ["", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight",
+  "Nine", "Ten", "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen",
+  "Seventeen", "Eighteen", "Nineteen"];
+const TENS = ["", "", "Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninety"];
+
+function twoDigits(n){
+  if(n < 20) return ONES[n];
+  return (TENS[Math.floor(n/10)] + (n%10 ? " " + ONES[n%10] : "")).trim();
+}
+function threeDigits(n){
+  if(n >= 100) return (ONES[Math.floor(n/100)] + " Hundred" + (n%100 ? " " + twoDigits(n%100) : "")).trim();
+  return twoDigits(n);
+}
+function numberToIndianWords(n){
+  n = Math.round(Number(n)||0);
+  if(n === 0) return "Zero Rupees";
+  const neg = n < 0; n = Math.abs(n);
+  let crore = Math.floor(n / 10000000); n %= 10000000;
+  let lakh = Math.floor(n / 100000); n %= 100000;
+  let thousand = Math.floor(n / 1000); n %= 1000;
+  let hundred = n;
+  let parts = [];
+  if(crore) parts.push(threeDigits(crore) + " Crore");
+  if(lakh) parts.push(threeDigits(lakh) + " Lakh");
+  if(thousand) parts.push(threeDigits(thousand) + " Thousand");
+  if(hundred) parts.push(threeDigits(hundred));
+  return (neg ? "Minus " : "") + parts.join(" ").trim() + " Rupees";
+}
+
+function val(id){ return document.getElementById(id).value; }
+function num(id){ return Number(document.getElementById(id).value) || 0; }
+
+function update(){
+  document.getElementById('p_subtitle').textContent = `Pay Slip for the month of ${val('pay_month')}  ${val('pay_year')}`;
+
+  const fields = ["employee_code","gender","employee_name","joining_date","department","currency",
+    "tot_working_days","ntn_no","work_location","id_no","designation","employee_type","nationality"];
+  fields.forEach(f => document.getElementById('p_'+f).textContent = val(f));
+
+  const basic = num('basic_salary'), overtime = num('overtime'), medical = num('medical');
+  const gross = basic + overtime + medical;
+  document.getElementById('p_basic_salary').textContent = formatINR(basic);
+  document.getElementById('p_overtime').textContent = formatINR(overtime);
+  document.getElementById('p_medical').textContent = formatINR(medical);
+  document.getElementById('p_gross_pay').textContent = formatINR(gross);
+
+  // deduction rows (first 3 slots align with existing rows; rest appended)
+  let totalDed = 0;
+  for(let i=0;i<3;i++){
+    const lbl = document.getElementById('ded_label_'+i);
+    const amt = document.getElementById('ded_amt_'+i);
+    if(deductions[i]){
+      lbl.textContent = deductions[i].label;
+      amt.textContent = formatINR(deductions[i].amount);
+      totalDed += Number(deductions[i].amount)||0;
+    } else {
+      lbl.textContent = ""; amt.textContent = "";
+    }
+  }
+  const extraWrap = document.getElementById('extraDedRows');
+  extraWrap.innerHTML = "";
+  extraWrap.style.display = 'none';
+  const extraTable = extraWrap.closest('table');
+  // remove any previously injected extra rows
+  document.querySelectorAll('.extra-ded-row').forEach(r => r.remove());
+  if(deductions.length > 3){
+    for(let i=3;i<deductions.length;i++){
+      totalDed += Number(deductions[i].amount)||0;
+      const tr = document.createElement('tr');
+      tr.className = 'extra-ded-row';
+      tr.innerHTML = `<td></td><td></td><td>${deductions[i].label}</td><td class="amt">${formatINR(deductions[i].amount)}</td>`;
+      extraTable.insertBefore(tr, extraWrap);
+    }
+  }
+
+  const net = gross - totalDed;
+  document.getElementById('p_net_words').textContent = numberToIndianWords(net);
+  document.getElementById('p_net_figures').textContent = formatINR(net);
+
+  const loanFields = ["total_loan","paid_loan","loan_balance","pf_starting_balance",
+    "pf_own_co_contribution","pf_permanent_loan","pf_refundable_loan","pf_total"];
+  loanFields.forEach(f => document.getElementById('p_'+f).textContent = formatINR(num(f)));
+
+  document.getElementById('p_account_no').textContent = val('account_no');
+  document.getElementById('p_ifsc_code').textContent = val('ifsc_code');
+  document.getElementById('p_bank_name').textContent = val('bank_name');
+}
+
+function collectData(){
+  const ids = ["pay_month","pay_year","employee_code","gender","employee_name","joining_date",
+    "department","currency","tot_working_days","ntn_no","work_location","id_no","designation",
+    "employee_type","nationality","basic_salary","overtime","medical","total_loan","paid_loan",
+    "loan_balance","pf_starting_balance","pf_own_co_contribution","pf_permanent_loan",
+    "pf_refundable_loan","pf_total","account_no","ifsc_code","bank_name"];
+  const data = {};
+  ids.forEach(id => data[id] = document.getElementById(id).value);
+  data.deductions = deductions;
+  return data;
+}
+function exportJSON(){
+  const data = collectData();
+  const blob = new Blob([JSON.stringify(data, null, 2)], {type:"application/json"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const name = (data.employee_name || "payslip").replace(/\s+/g,'_');
+  a.href = url;
+  a.download = `${name}_${data.pay_month}${data.pay_year}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+function importJSON(evt){
+  const file = evt.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try{
+      const data = JSON.parse(e.target.result);
+      Object.keys(data).forEach(k => {
+        if(k === 'deductions'){
+          deductions = data.deductions || [];
+          renderDeductionRows();
+        } else if(document.getElementById(k)){
+          document.getElementById(k).value = data[k];
+        }
+      });
+      update();
+    }catch(err){
+      alert("Could not read that file: " + err.message);
+    }
+  };
+  reader.readAsText(file);
+  evt.target.value = "";
+}
+
+// attach live-update listeners
+document.querySelectorAll('#formPanel input, #formPanel select').forEach(el => {
+  el.addEventListener('input', update);
+});
+
+// seed one blank deduction row example (kept empty by default) and initial render
+renderDeductionRows();
+update();
+</script>
+</body>
+</html>
